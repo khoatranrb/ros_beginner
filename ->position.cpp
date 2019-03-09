@@ -25,8 +25,7 @@ int main(int argc, char** argv)
     if(x==0 && y>0) {loopRate.sleep();pub.publish(getMessage(0,pi/2)); loopRate.sleep();}
     else if(x==0 && y<=0){loopRate.sleep(); pub.publish(getMessage(0,-pi/2));loopRate.sleep();}
     else if(x>0 && y<0){loopRate.sleep(); pub.publish(getMessage(0,atan(double(y)/x)));loopRate.sleep();}
-    else if(x<0 && y>0){loopRate.sleep(); pub.publish(getMessage(0,pi+atan(double(y)/x)));loopRate.sleep();}
-    else if(x<0 && y<0){loopRate.sleep(); pub.publish(getMessage(0,pi+atan(double(y)/x)));loopRate.sleep();}
+    else if(x<0){loopRate.sleep(); pub.publish(getMessage(0,pi+atan(double(y)/x)));loopRate.sleep();}
     else {loopRate.sleep();pub.publish(getMessage(0,atan(double(y)/x)));loopRate.sleep();}
     loopRate.sleep();
     pub.publish(getMessage(sqrt(x*x+y*y),0));
