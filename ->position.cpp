@@ -23,6 +23,7 @@ int main(int argc, char** argv)
     //pub.publish(getMessage(0,0));
     loopRate.sleep();
     if(x==0 && y>0) {loopRate.sleep();pub.publish(getMessage(0,pi/2)); loopRate.sleep();}
+    if(x<0 && y==0) {loopRate.sleep();pub.publish(getMessage(0,pi)); loopRate.sleep();}
     else if(x==0 && y<=0){loopRate.sleep(); pub.publish(getMessage(0,-pi/2));loopRate.sleep();}
     else if(x>0 && y<0){loopRate.sleep(); pub.publish(getMessage(0,atan(double(y)/x)));loopRate.sleep();}
     else if(x<0){loopRate.sleep(); pub.publish(getMessage(0,pi+atan(double(y)/x)));loopRate.sleep();}
