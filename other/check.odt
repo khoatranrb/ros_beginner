@@ -1,0 +1,27 @@
+rostopic type /turtle1/cmd_vel
+# Kiểm tra kiểu của topic /turtle1/cmd_vel
+# output: geometry_msgs/Twist
+
+rosmsg show geometry_msgs/Twist
+# Kiểm tra kiểu geometry_msgs/Twist như thế nào
+# output:
+# geometry_msgs/Vector3 linear
+#   float64 x
+#   float64 y
+#   float64 z
+# geometry_msgs/Vector3 angular
+#   float64 x
+#   float64 y
+#   float64 z
+
+rostopic echo /turtle1/cmd_vel
+# Kiểm tra xem topic có nhận được thông điệp
+
+rostopic hz /turtle1/cmd_vel
+# Kiểm tra tần suất topic nhận được thông điệp
+
+rosrun rqt_graph rqt_graph
+# Xem liên kết giữa các ROS node
+
+rosrun rqt_plot rqt_plot
+# Xem biểu đồ theo thời gian của các thông tin dạng số trong các topic
