@@ -1,16 +1,18 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <turtlesim/Pose.h>
+#include <cmath>
 #include <iostream>
 #include <queue>
 using namespace std;
 
-const double pi = 3.1415926535;
+int i = 0;
 float x, y, theta, v, vt;
-float x2, y2, theta2, v2, vt2;
-int state = 0;
-float target_angle;
-float target_distance;
+float tx = 2, ty = 1.5;
+int state = 0, rate = 300;
+float dist;
+float target, target_angle, t_a;
+double pi = 3.1415926535;
 ros::Publisher pub;
 
 geometry_msgs::Twist getMessage(double linear_x, double angular_z)
@@ -21,133 +23,104 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
     return msg;
 }
 
-void handleStateRotate()
+void move()
 {
-    if (abs(target_angle - theta2) < 0.01 || abs(abs(target_angle - theta2) - 2 * pi) < 0.01)
-    {
-        pub.publish(getMessage(0, 0));
-        state = 0;
-    }
+    if (abs(t_a - theta) > pi / 4)
+        pub.publish(getMessage(0, 1 * (t_a - theta)));
     else
     {
-        pub.publish(getMessage(0, 1));
+        if (abs(target) > 0.01)
+        {
+            if (abs(target) > 1.0 / rate)
+                if (abs(t_a - theta) > 0.016)
+                    pub.publish(getMessage(1.5 * target, 4 * (t_a - theta)));
+                else
+                    pub.publish(getMessage(1.5 * target, 0.01));
+            else
+            {
+                if (abs(t_a - theta) > 0.016)
+                    pub.publish(getMessage(0.5, 0.1));
+                else
+                    pub.publish(getMessage(0.5, 0.01));
+            }
+        }
+        else
+        {
+            pub.publish(getMessage(0, 0));
+            state = 0;
+        }
     }
-}
-
-void handleStateStraightForward()
-{
-    // float dist = sqrt((x-prevx)*(x-prevx)+(y-prevy)*(y-prevy));
-    // target_distance -= dist;
-    // if (target_distance <= 0) {
-    //     state = 0;
-    //     pub.publish(getMessage(0, 0));
-    // } else {
-    //     pub.publish(getMessage(1, 0));
-    // }
-    // if (abs(x - x2) < 0.01 && abs(y - y2) < 0.01)
-    // {
-    //     pub.publish(getMessage(0, 0));
-    //     state = 0;
-    // }
-    // else
-    // {
-    pub.publish(getMessage((x - x2) + (y - y2), 0));
-    // }
 }
 
 void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 {
     float prevx = x, prevy = y;
-
     x = msg->x, y = msg->y, theta = msg->theta,
     v = msg->linear_velocity, vt = msg->angular_velocity;
-}
-void rotate(float angle)
-{
-    state = 1;
-    target_angle = angle;
+    dist = sqrt((x - prevx) * (x - prevx) + (y - prevy) * (y - prevy));
+    if (abs(t_a - theta) > pi / 4)
+    {
+        cout << "a=" << t_a << endl
+             << "t=" << target_angle << endl
+             << "vt=" << vt << endl
+             << endl;
+    };
+
+    target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
+    target_angle = atan2(ty - y, tx - x);
+
+    if (i != 0)
+    {
+        if (abs(target) > 0.01)
+            state = 1;
+        else
+            state = 0;
+
+        if (ty < y && tx < x)
+            t_a = 2 * pi + target_angle;
+        else
+            t_a = target_angle;
+    }
+    else
+    {
+        t_a = 0;
+        target = 0.1;
+        state = 0;
+        i++;
+    }
+    if (t_a < 0)
+        t_a = t_a + 2 * pi;
 }
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 {
-    float prevx2 = x2, prevy2 = y2;
-    cout << "x=" << abs(x - x2) << endl;
-    x2 = msg->x, y2 = msg->y, theta2 = msg->theta,
-    v2 = msg->linear_velocity, vt2 = msg->angular_velocity;
-    target_angle = atan2(y - y2, x - x2);
-    cout << "x2=" << abs(y - y2) << endl;
-    if (state == 1)
-        handleStateRotate();
 
-    if (state == 2)
-        handleStateStraightForward();
+    tx = msg->x, ty = msg->y;
 }
-
-void straight_forward(float distance)
+void move(float x, float y)
 {
-    state = 2;
-    target_distance = distance;
+    state = 1;
+    target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
 }
-
-struct Action
-{
-    int type;
-    float target_angle;
-    float target_distance;
-};
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "myturtle_control");
     ros::NodeHandle h;
-    pub = h.advertise<geometry_msgs::Twist>("khoa/cmd_vel", 1000);
-    ros::Subscriber sub =
-        h.subscribe("/turtle1/pose", 1000, poseCallback);
+    pub = h.advertise<geometry_msgs::Twist>("turtle2/cmd_vel", 1000);
     ros::Subscriber sub2 =
-        h.subscribe("/khoa/pose", 1000, poseCallback2);
-    ros::Rate loopRate(20);
+        h.subscribe("/turtle1/pose", 1000, poseCallback2);
+    ros::Subscriber sub =
+        h.subscribe("/turtle2/pose", 1000, poseCallback);
+    ros::Rate loopRate(rate);
 
-    // bool in_action = false;
+    bool in_action = false;
     while (ros::ok())
     {
-        //pub.publish(getMessage(linear_x, 5.0));
-        //linear_x += 1.0;
-
-        queue<Action> q;
-        Action a1, a2;
-        a1.type = 1, a1.target_angle = atan2(y - y2, x - x2);
-        a2.type = 2, a2.target_distance = sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
-        q.push(a1);
-        q.push(a2);
-        // if (state == 0 && !in_action) {
-        if (q.size() > 0)
+        if (state == 1)
         {
-            Action a = q.front();
-            q.pop();
-            if (a.type == 1)
-                rotate(a.target_angle);
-            else if (a.type == 2)
-                straight_forward(a.target_distance);
-            // in_action = true;
+            move();
         }
-        // if (state == 0 && in_action) {
-        //     in_action = false;
-        // }
-        // if (abs(target_angle - theta2) > 0.01 || abs(abs(target_angle - theta2) - 2 * pi) > 0.01)
-        // {
-        //     cout<<"rotage"<<endl;
-        //     state = 1;
-        //     handleStateRotate();
-        // }
-        // else
-        // {
-        //     if (abs(x - x2) > 0.01 || abs(y - y2) > 0.01)
-        //     {
-        //         cout<<"active"<<endl;
-        //         state = 2;
-        //         handleStateStraightForward();
-        //     }
-        // }
         loopRate.sleep();
         ros::spinOnce();
     }
