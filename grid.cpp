@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <turtlesim/Pose.h>
-#include<cmath>
+#include <cmath>
 #include <iostream>
 #include <queue>
 using namespace std;
@@ -25,7 +25,7 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
 
 void handleStateRotate()
 {
-    if (abs(target_angle - theta) > 0.01)
+    if (abs(target_angle - theta) > 0.001)
     {
         if (abs(target_angle - theta) > 1.0 / rate)
             pub.publish(getMessage(0, target_angle - theta));
@@ -68,6 +68,7 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     if (!firstCall)
         target_distance -= dist;
     firstCall = false;
+    cout << target_distance << endl;
 }
 
 void rotate(float angle)
@@ -93,43 +94,43 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "myturtle_control");
     ros::NodeHandle h;
-    pub = h.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1000);
+    pub = h.advertise<geometry_msgs::Twist>("turtle2/cmd_vel", 1000);
     ros::Subscriber sub =
-        h.subscribe("/turtle1/pose", 1000, poseCallback);
+        h.subscribe("/turtle2/pose", 1000, poseCallback);
     ros::Rate loopRate(rate);
 
     queue<Action> q;
-    q.push({1, acos(sin(54*pi/180)), 0});
-    q.push({2, 0, 4});
-    q.push({1, pi, 0});
-    q.push({2, 0, 4});
-    q.push({1, 2*pi-acos(sin(54*pi/180)),0});
-    q.push({2, 0, 4});
-    q.push({1, pi-acos(sin(54*pi/180))-2*asin(0.25/sin(54*pi/180)), 0});
-    q.push({2, 0, 4});
-    q.push({1, pi+acos(sin(54*pi/180))+36*pi/180, 0});
-    q.push({2, 0, 4});
-    q.push({1,0,0});
-    q.push({1, acos(sin(54*pi/180)), 0});
-    q.push({2, 0, 4});
-    q.push({1, pi, 0});
-    q.push({2, 0, 4});
-    q.push({1, 2*pi-acos(sin(54*pi/180)),0});
-    q.push({2, 0, 4});
-    q.push({1, pi-acos(sin(54*pi/180))-2*asin(0.25/sin(54*pi/180)), 0});
-    q.push({2, 0, 4});
-    q.push({1, pi+acos(sin(54*pi/180))+36*pi/180, 0});
-    q.push({2, 0, 4});
-    // q.push({1, 75*pi/180, 0});
-    // q.push({2, 0, 4});
-    // q.push({1, 3*pi/2+15*pi/180, 0});
-    // q.push({2, 0, 4});
-    // q.push({1, 135*pi/180,0});
-    // q.push({2, 0, 4});
-    // q.push({1, 0, 0});
-    // q.push({2, 0, 4});
-    // q.push({1, pi+pi/6, 0});
-    // q.push({2, 0, 4});
+    for (int i = 1; i < 5; i++)
+    {
+        q.push({2, 0, 9});
+        q.push({1, pi / 2, 0});
+        q.push({2, 0, 1});
+        q.push({1, pi, 0});
+        q.push({2, 0, 9});
+        q.push({1, pi / 2, 0});
+        q.push({2, 0, 1});
+        q.push({1, 0, 0});
+    }
+    for (int i = 1; i < 5; i++)
+    {
+        q.push({2, 0, 1});
+        q.push({1, 1.5 * pi, 0});
+        q.push({2, 0, 8});
+        q.push({1, 0, 0});
+        q.push({2, 0, 1});
+        q.push({1, pi / 2, 0});
+        q.push({2, 0, 8});
+        q.push({1, 0, 0});
+    }
+    q.push({2, 0, 1});
+    q.push({1, 1.5 * pi, 0});
+    q.push({2, 0, 8});
+    q.push({1, 0, pi});
+    q.push({2, 0, 9});
+    q.push({1, pi / 2, 0});
+    q.push({2, 0, 9});
+    q.push({1, 0, 0});
+    q.push({2, 0, 9});
     bool in_action = false;
     while (ros::ok())
     {
