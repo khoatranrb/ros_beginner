@@ -26,7 +26,10 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
 void move()
 {
     if (abs(t_a - theta) > pi / 4)
-        pub.publish(getMessage(0, 1 * (t_a - theta)));
+        if (t_a < 0.1 || t_a > 6.1)
+            pub.publish(getMessage(1.5 * target, 0 * (t_a - theta)));
+        else
+            pub.publish(getMessage(0, 1 * (t_a - theta)));
     else
     {
         if (abs(target) > 0.01)
