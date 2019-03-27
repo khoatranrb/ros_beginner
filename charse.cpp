@@ -9,8 +9,8 @@ using namespace std;
 int i = 0;
 float x, y, theta, v, vt;
 float tx = 2, ty = 1.5;
-int state = 0, rate = 300;
-float dist;
+int state = 0, rate = 600;
+float a_z;
 float target, target_angle, t_a;
 double pi = 3.1415926535;
 ros::Publisher pub;
@@ -25,26 +25,42 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
 
 void move()
 {
-    if (abs(t_a - theta) > pi / 4)
-        if (t_a < 0.1 || t_a > 6.1)
-            pub.publish(getMessage(1.5 * target, 0 * (t_a - theta)));
-        else
-            pub.publish(getMessage(0, 1 * (t_a - theta)));
+    //if()
+    if (abs(t_a - theta) > pi / 4 && abs(t_a - theta) < 2 * pi - pi / 4)
+    // if (t_a < 0.1 || t_a > 6.1)
+    //     pub.publish(getMessage(1.5 * target, 0 * (t_a - theta)));
+    // else
+    {
+        pub.publish(getMessage(0, 1 * a_z));
+        cout << "1" << endl;
+    }
     else
     {
         if (abs(target) > 0.01)
         {
-            if (abs(target) > 1.0 / rate)
-                if (abs(t_a - theta) > 0.016)
-                    pub.publish(getMessage(1.5 * target, 4 * (t_a - theta)));
+            if (abs(target) > 0.1)
+                if (abs(t_a - theta) > 0.16)
+                {
+                    pub.publish(getMessage(2.1 * target, 0.08 * a_z));
+                    cout << "2" << endl;
+                }
                 else
-                    pub.publish(getMessage(1.5 * target, 0.01));
+                {
+                    pub.publish(getMessage(1.6 * target, 0.061 * a_z));
+                    cout << "3" << endl;
+                }
             else
             {
                 if (abs(t_a - theta) > 0.016)
-                    pub.publish(getMessage(0.5, 0.1));
+                {
+                    pub.publish(getMessage(0.5 * target, 0.02 * a_z));
+                    cout << "4" << endl;
+                }
                 else
-                    pub.publish(getMessage(0.5, 0.01));
+                {
+                    pub.publish(getMessage(0.05 * target, 0.01 * a_z));
+                    cout << "5" << endl;
+                }
             }
         }
         else
@@ -60,14 +76,13 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     float prevx = x, prevy = y;
     x = msg->x, y = msg->y, theta = msg->theta,
     v = msg->linear_velocity, vt = msg->angular_velocity;
-    dist = sqrt((x - prevx) * (x - prevx) + (y - prevy) * (y - prevy));
-    if (abs(t_a - theta) > pi / 4)
-    {
-        cout << "a=" << t_a << endl
-             << "t=" << target_angle << endl
-             << "vt=" << vt << endl
-             << endl;
-    };
+    // if (abs(t_a - theta) > pi / 4)
+    // {
+    //     cout << "a=" << t_a << endl
+    //          << "t=" << target_angle << endl
+    //          << "vt=" << vt << endl
+    //          << endl;
+    // };
 
     target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
     target_angle = atan2(ty - y, tx - x);
@@ -93,6 +108,11 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     }
     if (t_a < 0)
         t_a = t_a + 2 * pi;
+
+    if (t_a - theta < pi)
+        a_z = t_a - theta;
+    else
+        a_z = -t_a + theta;
 }
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
