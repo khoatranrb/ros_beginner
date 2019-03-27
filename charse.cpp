@@ -31,7 +31,7 @@ void move()
     //     pub.publish(getMessage(1.5 * target, 0 * (t_a - theta)));
     // else
     {
-        pub.publish(getMessage(0, 1 * a_z));
+        pub.publish(getMessage(0, 2 * a_z));
         cout << "1" << endl;
     }
     else
@@ -41,24 +41,24 @@ void move()
             if (abs(target) > 0.1)
                 if (abs(t_a - theta) > 0.16)
                 {
-                    pub.publish(getMessage(2.1 * target, 0.08 * a_z));
+                    pub.publish(getMessage(2.4 * target, 0.2 * a_z));
                     cout << "2" << endl;
                 }
                 else
                 {
-                    pub.publish(getMessage(1.6 * target, 0.061 * a_z));
+                    pub.publish(getMessage(2 * target, 0.2 * a_z));
                     cout << "3" << endl;
                 }
             else
             {
                 if (abs(t_a - theta) > 0.016)
                 {
-                    pub.publish(getMessage(0.5 * target, 0.02 * a_z));
+                    pub.publish(getMessage(1 * target, 0.05 * a_z));
                     cout << "4" << endl;
                 }
                 else
                 {
-                    pub.publish(getMessage(0.05 * target, 0.01 * a_z));
+                    pub.publish(getMessage(0.2 * target, 0.02 * a_z));
                     cout << "5" << endl;
                 }
             }
@@ -106,13 +106,20 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
         state = 0;
         i++;
     }
-    if (t_a < 0)
-        t_a = t_a + 2 * pi;
-
-    if (t_a - theta < pi)
-        a_z = t_a - theta;
+    if (t_a < pi)
+    {
+        if (theta < t_a + pi)
+            a_z = t_a - theta;
+        else
+            a_z = theta - t_a;
+    }
     else
-        a_z = -t_a + theta;
+    {
+        if (theta < t_a - pi)
+            a_z = theta - t_a;
+        else
+            a_z = t_a - theta;
+    }
 }
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
