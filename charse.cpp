@@ -86,10 +86,15 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
         else
             state = 0;
 
-        if (ty < y && tx < x)
+        t_a = target_angle;
+        if (target_angle < 0)
+        {
             t_a = 2 * pi + target_angle;
-        else
-            t_a = target_angle;
+        }
+        // if (ty < y && tx < x)
+        //     t_a = 2 * pi + target_angle;
+        // else
+        //     t_a = target_angle;
     }
     else
     {
