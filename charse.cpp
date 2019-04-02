@@ -73,7 +73,7 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
     if (i != 0)
     {
-        if (target) > 0.00001)
+        if (target > 0.00001)
             state = 1;
         else
             state = 0;
@@ -116,11 +116,11 @@ void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 
     tx = msg->x, ty = msg->y;
 }
-void move(float x, float y)
-{
-    state = 1;
-    target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
-}
+// void move(float x, float y)
+// {
+//     state = 1;
+//     target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
+// }
 
 int main(int argc, char **argv)
 {
