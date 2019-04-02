@@ -25,46 +25,36 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
 
 void move()
 {
-    if (target > 0.0001)
+    if (target > 0.000001)
     {
         if (target > 0.1)
         {
             if (abs(t_a - theta) > pi / 4 && abs(t_a - theta) < 2 * pi - pi / 4)
             {
                 pub.publish(getMessage(0, 2 * a_z / abs(a_z)));
-                //cout << "1" << endl;
+                cout << "1" << endl;
             }
             else
             {
                 pub.publish(getMessage(2, 1 * a_z / abs(a_z)));
-                //cout << "2" << endl;
+                cout << "2" << endl;
             }
         }
         else
         {
-            if (abs(t_a - theta) > 0.00001)
-            {
-                pub.publish(getMessage(0, 1 * a_z / abs(a_z)));
-                //cout << "3" << endl;
-            }
-            else
-            {
-                pub.publish(getMessage(target, 0));
-                //cout << "4" << endl;
-            }
+            pub.publish(getMessage(target, a_z));
+            cout << "3" << endl;
         }
     }
     else
     {
         pub.publish(getMessage(0, 0));
-        //cout << "0" << endl;
         state = 0;
     }
 }
 
 void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 {
-    float prevx = x, prevy = y;
     x = msg->x, y = msg->y, theta = msg->theta,
     v = msg->linear_velocity, vt = msg->angular_velocity;
     // if (abs(t_a - theta) > pi / 4)
@@ -74,6 +64,8 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     //          << "vt=" << vt << endl
     //          << endl;
     // };
+    if (v == 0 && vt == 0)
+        cout << "Stop" << endl;
     if (theta < 0)
         theta = 2 * pi + theta;
     target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
@@ -117,10 +109,6 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
         else
             a_z = t_a - theta;
     }
-    cout << a_z << endl
-         << target_angle << endl
-         << theta << endl
-         << endl;
 }
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
