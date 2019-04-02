@@ -25,7 +25,7 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
 
 void move()
 {
-    if (target > 0.000001)
+    if (target > 0.00001)
     {
         if (target > 0.1)
         {
@@ -73,7 +73,7 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
     if (i != 0)
     {
-        if (abs(target) > 0.01)
+        if (target) > 0.00001)
             state = 1;
         else
             state = 0;
