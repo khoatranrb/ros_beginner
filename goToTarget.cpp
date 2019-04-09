@@ -3,7 +3,7 @@
 #include <turtlesim/Pose.h>
 #include <cmath>
 #include <iostream>
-#include <queue>
+#include <algorithm>
 using namespace std;
 
 int i = 0;
@@ -27,24 +27,8 @@ void move()
 {
     if (target > 0.00001)
     {
-        if (target > 0.1)
-        {
-            if (abs(t_a - theta) > pi / 4 && abs(t_a - theta) < 2 * pi - pi / 4)
-            {
-                pub.publish(getMessage(0, 2 * a_z / abs(a_z)));
-                cout << "1" << endl;
-            }
-            else
-            {
-                pub.publish(getMessage(2, 1 * a_z / abs(a_z)));
-                cout << "2" << endl;
-            }
-        }
-        else
-        {
-            pub.publish(getMessage(target, a_z));
-            cout << "3" << endl;
-        }
+        pub.publish(getMessage(min(float(4), target), 2 * a_z));
+        cout << "1" << endl;
     }
     else
     {
