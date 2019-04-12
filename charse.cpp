@@ -15,42 +15,12 @@ float target, target_angle, t_a;
 double pi = 3.1415926535;
 ros::Publisher pub;
 
-geometry_msgs::Twist getMessage(double linear_x, double angular_z)
+geometry_msgs::Twist getMessage(float linear_x, float angular_z)
 {
     geometry_msgs::Twist msg;
     msg.linear.x = linear_x;
     msg.angular.z = angular_z;
     return msg;
-}
-
-void move()
-{
-    if (target > 0.00001)
-    {
-        if (target > 0.1)
-        {
-            if (abs(t_a - theta) > pi / 4 && abs(t_a - theta) < 2 * pi - pi / 4)
-            {
-                pub.publish(getMessage(0, 2 * a_z / abs(a_z)));
-                cout << "1" << endl;
-            }
-            else
-            {
-                pub.publish(getMessage(2, 1 * a_z / abs(a_z)));
-                cout << "2" << endl;
-            }
-        }
-        else
-        {
-            pub.publish(getMessage(target, a_z));
-            cout << "3" << endl;
-        }
-    }
-    else
-    {
-        pub.publish(getMessage(0, 0));
-        state = 0;
-    }
 }
 
 void poseCallback(const turtlesim::Pose::ConstPtr &msg)
@@ -83,10 +53,6 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
         {
             t_a = 2 * pi + target_angle;
         }
-        // if (ty < y && tx < x)
-        //     t_a = 2 * pi + target_angle;
-        // else
-        //     t_a = target_angle;
     }
     else
     {
@@ -111,16 +77,37 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     }
 }
 
+float angularZ()
+{
+    if (a_z > 0)
+        return min(float(2), a_z);
+    else
+        return max(a_z, float(-2));
+}
+float linearX()
+{
+    return min(float(4), target);
+}
+
+void move()
+{
+    if (target > 0.00001)
+    {
+        pub.publish(getMessage(linearX(), 2 * angularZ()));
+        cout << "1" << endl;
+    }
+    else
+    {
+        pub.publish(getMessage(0, 0));
+        state = 0;
+    }
+}
+
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 {
 
     tx = msg->x, ty = msg->y;
 }
-// void move(float x, float y)
-// {
-//     state = 1;
-//     target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
-// }
 
 int main(int argc, char **argv)
 {
