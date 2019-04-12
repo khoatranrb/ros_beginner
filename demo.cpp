@@ -24,36 +24,6 @@ geometry_msgs::Twist getMessage(double linear_x, double angular_z)
     return msg;
 }
 
-void move()
-{
-    if (target > 0.00001)
-    {
-        if (target > 0.1)
-        {
-            if (abs(t_a - theta) > pi / 4 && abs(t_a - theta) < 2 * pi - pi / 4)
-            {
-                pub.publish(getMessage(0, 2 * a_z / abs(a_z)));
-                cout << "1" << endl;
-            }
-            else
-            {
-                pub.publish(getMessage(2, 1 * a_z / abs(a_z)));
-                cout << "2" << endl;
-            }
-        }
-        else
-        {
-            pub.publish(getMessage(target, a_z));
-            cout << "3" << endl;
-        }
-    }
-    else
-    {
-        pub.publish(getMessage(0, 0));
-        state = 0;
-    }
-}
-
 void poseCallback(const turtlesim::Pose::ConstPtr &msg);
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
@@ -70,10 +40,35 @@ void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 
 bool vatCan(float w)
 {
-    if (w < 1)
+    if (w < 1 && (d_theta < pi / 6 || d_theta > 2 * pi - pi / 6))
         return true;
     else
         return false;
+}
+float angularZ()
+{
+    if (a_z > 0)
+        return min(float(2), a_z);
+    else
+        return max(a_z, float(-2));
+}
+float linearX()
+{
+    return min(float(4), target);
+}
+
+void move()
+{
+    if (target > 0.00001)
+    {
+        pub.publish(getMessage(linearX(), 2 * angularZ()));
+        //cout << "1" << endl;
+    }
+    else
+    {
+        pub.publish(getMessage(0, 0));
+        state = 0;
+    }
 }
 
 int main(int argc, char **argv)
@@ -172,4 +167,6 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     }
     if (vatCan(w) == true)
         cout << "Co vat can " << d_theta << endl;
+    else
+        cout << "fine" << endl;
 }
