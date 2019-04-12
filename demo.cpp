@@ -3,7 +3,7 @@
 #include <turtlesim/Pose.h>
 #include <cmath>
 #include <iostream>
-#include <queue>
+#include <algorithm>
 using namespace std;
 
 int i = 0;
@@ -16,7 +16,7 @@ float target, target_angle, t_a;
 double pi = 3.1415926535;
 ros::Publisher pub;
 
-geometry_msgs::Twist getMessage(double linear_x, double angular_z)
+geometry_msgs::Twist getMessage(float linear_x, float angular_z)
 {
     geometry_msgs::Twist msg;
     msg.linear.x = linear_x;
@@ -45,6 +45,7 @@ bool vatCan(float w)
     else
         return false;
 }
+
 float angularZ()
 {
     if (a_z > 0)
@@ -62,7 +63,7 @@ void move()
     if (target > 0.00001)
     {
         pub.publish(getMessage(linearX(), 2 * angularZ()));
-        //cout << "1" << endl;
+        cout << "1" << endl;
     }
     else
     {
