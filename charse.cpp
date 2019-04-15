@@ -23,7 +23,7 @@ geometry_msgs::Twist getMessage(float linear_x, float angular_z)
     return msg;
 }
 
-void poseCallback(const turtlesim::Pose::ConstPtr &msg)
+void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 {
     x = msg->x, y = msg->y, theta = msg->theta,
     v = msg->linear_velocity, vt = msg->angular_velocity;
@@ -103,7 +103,7 @@ void move()
     }
 }
 
-void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
+void poseCallback1(const turtlesim::Pose::ConstPtr &msg)
 {
 
     tx = msg->x, ty = msg->y;
@@ -114,10 +114,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "myturtle_control");
     ros::NodeHandle h;
     pub = h.advertise<geometry_msgs::Twist>("turtle2/cmd_vel", 1000);
-    ros::Subscriber sub2 =
-        h.subscribe("/turtle1/pose", 1000, poseCallback2);
     ros::Subscriber sub =
-        h.subscribe("/turtle2/pose", 1000, poseCallback);
+        h.subscribe("/turtle1/pose", 1000, poseCallback);
+    ros::Subscriber sub2 =
+        h.subscribe("/turtle2/pose", 1000, poseCallback2);
     ros::Rate loopRate(rate);
 
     bool in_action = false;
