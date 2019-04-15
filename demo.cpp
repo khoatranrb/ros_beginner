@@ -39,6 +39,14 @@ void dor()
         else
             a_z = t_a - theta;
     }
+    if ((t_a < pi / 6 || t_a > 2 * pi - pi / 6) && (theta < pi / 6 || theta > 2 * pi - pi / 6))
+    {
+        if (t_a > pi)
+            t_a -= 2 * pi;
+        if (theta > pi)
+            theta -= 2 * pi;
+        a_z = t_a - theta;
+    }
 }
 float angularZ()
 {
@@ -135,6 +143,7 @@ int main(int argc, char **argv)
             {
                 cout << "Target angle: ";
                 cin >> angles;
+                angles = angles / 180 * pi;
             }
             dist = 0;
             in_action = true;
@@ -153,7 +162,7 @@ int main(int argc, char **argv)
         }
         else if (state == 0 && in_action)
         {
-            cout << dist << endl;
+            //cout << dist << endl;
             in_action = false;
         }
         loopRate.sleep();
