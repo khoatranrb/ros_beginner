@@ -7,22 +7,23 @@
 using namespace std;
 
 int i = 0;
-float prevx, prevy;
+float prevx, prevy, prevtheta;
 float x = 5.5444, y = 5.5444, theta, v, vt;
 float tx = 2, ty = 1.5;
 int state = 0, rate = 600;
 float a_z;
+float dist = 0, ds, distances = 0;
 float ox, oy, w = 10, w_theta, d_theta;
 float target, target_angle, t_a;
+float angle, angles, da;
 double pi = 3.1415926535;
-float distance = 0;
 ros::Publisher pub;
 
 geometry_msgs::Twist getMessage(float linear_x, float angular_z);
 void poseCallback(const turtlesim::Pose::ConstPtr &msg);
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg);
 bool vatCan();
-void DoR()
+void dor()
 {
     if (t_a < pi)
     {
@@ -75,8 +76,31 @@ void move()
 
 void straightForward()
 {
+    ds = abs(distances - dist);
+    if (ds < 0.00001)
+    {
+        pub.publish(getMessage(0, 0));
+        state = 0;
+    }
+    else
+    {
+        pub.publish(getMessage(min(float(4), ds), 0));
+    }
 }
 
+void rotate()
+{
+    da = abs(angles - theta);
+    if (da < 0.00001)
+    {
+        pub.publish(getMessage(0, 0));
+        state = 0;
+    }
+    else
+    {
+        pub.publish(getMessage(0, angularZ()));
+    }
+}
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "myturtle_control");
@@ -97,7 +121,6 @@ int main(int argc, char **argv)
             cin >> state;
             if (state == 1)
             {
-                distance = 0;
                 cout << "tx = ";
                 cin >> tx;
                 cout << "ty = ";
@@ -105,19 +128,32 @@ int main(int argc, char **argv)
             }
             else if (state == 2)
             {
-                distance = 0;
+                cout << "Target distance: ";
+                cin >> distances;
             }
             else if (state == 3)
             {
+                cout << "Target angle: ";
+                cin >> angles;
             }
+            dist = 0;
             in_action = true;
         }
         else if (state == 1)
         {
             move();
         }
+        else if (state == 2)
+        {
+            straightForward();
+        }
+        else if (state == 3)
+        {
+            rotate();
+        }
         else if (state == 0 && in_action)
         {
+            cout << dist << endl;
             in_action = false;
         }
         loopRate.sleep();
@@ -137,7 +173,8 @@ geometry_msgs::Twist getMessage(float linear_x, float angular_z)
 
 void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 {
-    prevx = x, prevy = y;
+    prevx = x;
+    prevy = y;
     x = msg->x, y = msg->y, theta = msg->theta,
     v = msg->linear_velocity, vt = msg->angular_velocity;
     //if (v == 0 && vt == 0)
@@ -149,30 +186,30 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
     if (i != 0)
     {
-        // if (target > 0.00001)
-        //     state = 1;
-        // else
-        //     state = 0;
-
-        t_a = target_angle;
-        if (target_angle < 0)
+        dist += sqrt((prevx - x) * (prevx - x) + (prevy - y) * (prevy - y));
+        if (state == 3)
+            t_a = angles;
+        else
         {
-            t_a = 2 * pi + target_angle;
+            t_a = target_angle;
+            if (target_angle < 0)
+            {
+                t_a = 2 * pi + target_angle;
+            }
         }
     }
     else
     {
         t_a = 0;
-        target = 0.1;
-        state = 0;
-        i++;
+        target = 0;
+        i = 1;
     }
-    DoR();
+    dor();
 
-    if (vatCan() == true)
-        cout << "Co vat can " << d_theta << endl;
-    else
-        cout << "fine" << endl;
+    // if (vatCan() == true)
+    //     cout << "Co vat can " << d_theta << endl;
+    // else
+    //     cout << "fine" << endl;
 }
 
 void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
@@ -189,7 +226,7 @@ void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
 
 bool vatCan()
 {
-    if (w < 0.8 && (d_theta < pi / 3 || d_theta > 2 * pi - pi / 3))
+    if (w < 1 && (d_theta < pi / 6 || d_theta > 2 * pi - pi / 6))
         return true;
     else
         return false;
