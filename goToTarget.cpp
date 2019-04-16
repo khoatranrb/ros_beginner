@@ -53,6 +53,14 @@ void dor()
         else
             a_z = t_a - theta;
     }
+    if ((t_a < pi / 6 || t_a > 2 * pi - pi / 6) && (theta < pi / 6 || theta > 2 * pi - pi / 6))
+    {
+        if (t_a > pi)
+            t_a -= 2 * pi;
+        if (theta > pi)
+            theta -= 2 * pi;
+        a_z = t_a - theta;
+    }
 }
 
 void move()
