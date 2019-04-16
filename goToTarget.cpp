@@ -22,30 +22,53 @@ void poseCallback2(const turtlesim::Pose::ConstPtr &msg);
 bool vatCan();
 float angularZ()
 {
-    if (vatCan() == true)
-        return 1;
+    if (a_z > 0)
+        return min(float(4), 2 * a_z);
     else
-    {
-        if (a_z > 0)
-            return min(float(4), 2 * a_z);
-        else
-            return max(2 * a_z, float(-4));
-    }
+        return max(2 * a_z, float(-4));
 }
 float linearX()
 {
-    if (vatCan() == true)
-        return 0;
+    return min(float(4), target);
+}
+void dor()
+{
+    if (state == 2)
+    {
+        t_a += pi;
+        if (t_a > 2 * pi)
+            t_a -= 2 * pi;
+    }
+    if (t_a < pi)
+    {
+        if (theta < t_a + pi)
+            a_z = t_a - theta;
+        else
+            a_z = theta - t_a;
+    }
     else
-        return min(float(4), target);
+    {
+        if (theta < t_a - pi)
+            a_z = theta - t_a;
+        else
+            a_z = t_a - theta;
+    }
 }
 
 void move()
 {
     if (target > 0.00001)
     {
-        pub.publish(getMessage(linearX(), angularZ()));
-        //cout << "1" << endl;
+        if (state == 1)
+        {
+            pub.publish(getMessage(linearX(), angularZ()));
+            //cout << "1" << endl;
+        }
+        else if (state == 2)
+        {
+            pub.publish(getMessage(-linearX(), angularZ()));
+            //cout << "1" << endl;
+        }
     }
     else
     {
@@ -61,8 +84,6 @@ int main(int argc, char **argv)
     pub = h.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1000);
     ros::Subscriber sub =
         h.subscribe("/turtle1/pose", 1000, poseCallback);
-    ros::Subscriber sub2 =
-        h.subscribe("/turtle2/pose", 1000, poseCallback2);
     ros::Rate loopRate(rate);
 
     bool in_action = false;
@@ -70,14 +91,26 @@ int main(int argc, char **argv)
     {
         if (state == 0 && !in_action)
         {
-
             cout << "tx = ";
             cin >> tx;
             cout << "ty = ";
             cin >> ty;
+            target = sqrt((tx - x) * (tx - x) + (ty - y) * (ty - y));
+            target_angle = atan2(ty - y, tx - x);
+            if (target_angle < 0)
+                target_angle += 2 * pi;
+            if (target < 0.00001)
+                state = 0;
+            else
+            {
+                if (abs(target_angle - theta) > pi / 2 && abs(target_angle - theta) < 3 * pi / 2)
+                    state = 2;
+                else
+                    state = 1;
+            }
             in_action = true;
         }
-        else if (state == 1)
+        else if (state == 1 || state == 2)
         {
             move();
         }
@@ -113,11 +146,6 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
     if (i != 0)
     {
-        if (target > 0.00001)
-            state = 1;
-        else
-            state = 0;
-
         t_a = target_angle;
         if (target_angle < 0)
         {
@@ -128,46 +156,7 @@ void poseCallback(const turtlesim::Pose::ConstPtr &msg)
     {
         t_a = 0;
         target = 0.1;
-        state = 0;
         i++;
     }
-    if (t_a < pi)
-    {
-        if (theta < t_a + pi)
-            a_z = t_a - theta;
-        else
-            a_z = theta - t_a;
-    }
-    else
-    {
-        if (theta < t_a - pi)
-            a_z = theta - t_a;
-        else
-            a_z = t_a - theta;
-    }
-
-    if (vatCan() == true)
-        cout << "Co vat can " << d_theta << endl;
-    else
-        cout << "fine" << endl;
-}
-
-void poseCallback2(const turtlesim::Pose::ConstPtr &msg)
-{
-    ox = msg->x, oy = msg->y;
-    w = sqrt((ox - x) * (ox - x) + (oy - y) * (oy - y));
-    w_theta = atan2(oy - y, ox - x);
-    if (w_theta < 0)
-        w_theta += 2 * pi;
-    d_theta = abs(w_theta - theta);
-    if (d_theta > pi)
-        d_theta = 2 * pi - d_theta;
-}
-
-bool vatCan()
-{
-    if (w < 1 && (d_theta < pi / 6 || d_theta > 2 * pi - pi / 6))
-        return true;
-    else
-        return false;
+    dor();
 }
